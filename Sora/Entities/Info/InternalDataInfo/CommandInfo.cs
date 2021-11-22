@@ -6,7 +6,7 @@ using Sora.Attributes;
 using Sora.Enumeration;
 using Sora.Enumeration.EventParamsType;
 using Sora.EventArgs.SoraEvent;
-using YukariToolBox.Extensions;
+using Sora.Util;
 
 namespace Sora.Entities.Info.InternalDataInfo;
 

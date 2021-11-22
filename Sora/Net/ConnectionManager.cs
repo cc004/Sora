@@ -8,7 +8,7 @@ using Sora.Enumeration;
 using Sora.EventArgs.WebsocketEvent;
 using Sora.Interfaces;
 using Websocket.Client;
-using YukariToolBox.FormatLog;
+using YukariToolBox.LightLog;
 
 namespace Sora.Net;
 

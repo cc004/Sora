@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using Sora.Entities.Segment.DataModel;
 using Sora.Entities.Info;
 using Sora.Entities.Segment;
+using Sora.Entities.Segment.DataModel;
 using Sora.Enumeration.ApiType;
 using Sora.Enumeration.EventParamsType;
 using Sora.EventArgs.SoraEvent;
@@ -34,6 +34,14 @@ public sealed class SoraApi
 
     #endregion
 
+    #region 常量
+
+    private const int MinGroupId  = 100000;
+    private const int MinUserId   = 10000;
+    private const int MinDuration = 60;
+
+    #endregion
+
     #region 构造函数
 
     /// <summary>
@@ -54,9 +62,9 @@ public sealed class SoraApi
     #region 消息API
 
     /// <summary>
-    /// 发送群聊消息
+    /// 发送私聊消息
     /// </summary>
-    /// <param name="userId">发送目标群id</param>
+    /// <param name="userId">发送目标用户id</param>
     /// <param name="message">消息内容</param>
     /// <param name="timeout">覆盖原有超时</param>
     /// <returns>
@@ -66,7 +74,7 @@ public sealed class SoraApi
     public async ValueTask<(ApiStatus apiStatus, int messageId)> SendPrivateMessage(
         long userId, MessageBody message, TimeSpan? timeout = null)
     {
-        if (userId        < 10000) throw new ArgumentOutOfRangeException(nameof(userId));
+        if (userId        < MinUserId) throw new ArgumentOutOfRangeException(nameof(userId));
         if (message.Count == 0) throw new NullReferenceException(nameof(message));
         return await ApiInterface.SendPrivateMessage(ConnectionId, userId, message, null, timeout);
     }
@@ -85,8 +93,8 @@ public sealed class SoraApi
     public async ValueTask<(ApiStatus apiStatus, int messageId)> SendTemporaryMessage(
         long userId, long groupId, MessageBody message, TimeSpan? timeout = null)
     {
-        if (userId        < 10000) throw new ArgumentOutOfRangeException(nameof(userId));
-        if (groupId       < 100000) throw new ArgumentOutOfRangeException(nameof(groupId));
+        if (userId        < MinUserId) throw new ArgumentOutOfRangeException(nameof(userId));
+        if (groupId       < MinGroupId) throw new ArgumentOutOfRangeException(nameof(groupId));
         if (message.Count == 0) throw new NullReferenceException(nameof(message));
         return await ApiInterface.SendPrivateMessage(ConnectionId, userId, message, groupId, timeout);
     }
@@ -104,7 +112,7 @@ public sealed class SoraApi
     public async ValueTask<(ApiStatus apiStatus, int messageId)> SendGroupMessage(
         long groupId, MessageBody message, TimeSpan? timeout = null)
     {
-        if (groupId       < 100000) throw new ArgumentOutOfRangeException(nameof(groupId));
+        if (groupId       < MinGroupId) throw new ArgumentOutOfRangeException(nameof(groupId));
         if (message.Count == 0) throw new NullReferenceException(nameof(message));
         return await ApiInterface.SendGroupMessage(ConnectionId, groupId, message, timeout);
     }
@@ -150,7 +158,7 @@ public sealed class SoraApi
     /// </param>
     public async ValueTask<ApiStatus> SendGroupForwardMsg(long groupId, IEnumerable<CustomNode> nodeList)
     {
-        if (groupId < 100000) throw new ArgumentOutOfRangeException(nameof(groupId));
+        if (groupId < MinGroupId) throw new ArgumentOutOfRangeException(nameof(groupId));
         IEnumerable<CustomNode> customNodes = nodeList as CustomNode[] ?? nodeList.ToArray();
         if (nodeList == null || !customNodes.Any()) throw new NullReferenceException(nameof(nodeList));
         return await ApiInterface.SendGroupForwardMsg(ConnectionId, groupId, customNodes);
@@ -246,8 +254,10 @@ public sealed class SoraApi
     /// </param>
     public async ValueTask<ApiStatus> SetGroupCard(long groupId, long userId, string card)
     {
-        if (groupId < 100000 || userId < 10000)
-            throw new ArgumentOutOfRangeException($"{nameof(groupId)} or {nameof(userId)} out of range");
+        if (groupId < MinGroupId)
+            throw new ArgumentOutOfRangeException(nameof(groupId), $"out of range [{groupId}]");
+        if (userId < MinUserId)
+            throw new ArgumentOutOfRangeException(nameof(userId), $"out of range [{userId}]");
         return await ApiInterface.SetGroupCard(ConnectionId, groupId, userId, card);
     }
 
@@ -259,8 +269,10 @@ public sealed class SoraApi
     /// <param name="specialTitle">专属头衔(为空时清空)</param>
     public async ValueTask<ApiStatus> SetGroupMemberSpecialTitle(long groupId, long userId, string specialTitle)
     {
-        if (groupId < 100000 || userId < 10000)
-            throw new ArgumentOutOfRangeException($"{nameof(groupId)} or {nameof(userId)} out of range");
+        if (groupId < MinGroupId)
+            throw new ArgumentOutOfRangeException(nameof(groupId), $"out of range [{groupId}]");
+        if (userId < MinUserId)
+            throw new ArgumentOutOfRangeException(nameof(userId), $"out of range [{userId}]");
         return await ApiInterface.SetGroupSpecialTitle(ConnectionId, groupId, userId, specialTitle);
     }
 
@@ -272,8 +284,10 @@ public sealed class SoraApi
     /// <param name="rejectRequest">拒绝此人的加群请求</param>
     public async ValueTask<ApiStatus> KickGroupMember(long groupId, long userId, bool rejectRequest)
     {
-        if (groupId < 100000 || userId < 10000)
-            throw new ArgumentOutOfRangeException($"{nameof(groupId)} or {nameof(userId)} out of range");
+        if (userId < MinUserId)
+            throw new ArgumentOutOfRangeException(nameof(userId), $"out of range [{userId}]");
+        if (groupId < MinGroupId)
+            throw new ArgumentOutOfRangeException(nameof(groupId), $"out of range [{nameof(userId)}]");
         return await ApiInterface.KickGroupMember(ConnectionId, groupId, userId, rejectRequest);
     }
 
@@ -288,9 +302,12 @@ public sealed class SoraApi
     /// </param>
     public async ValueTask<ApiStatus> EnableGroupMemberMute(long groupId, long userId, long duration)
     {
-        if (groupId < 100000 || userId < 10000 || duration < 60)
-            throw new
-                ArgumentOutOfRangeException($"{nameof(groupId)} or {nameof(userId)} or {nameof(duration)} out of range");
+        if (groupId < MinGroupId)
+            throw new ArgumentOutOfRangeException(nameof(groupId), $"out of range [{groupId}]");
+        if (userId < MinUserId)
+            throw new ArgumentOutOfRangeException(nameof(userId), $"out of range [{userId}]");
+        if (duration < MinDuration)
+            throw new ArgumentOutOfRangeException(nameof(duration), $"out of range [{duration}]");
         return await ApiInterface.SetGroupBan(ConnectionId, groupId, userId, duration);
     }
 
@@ -301,8 +318,10 @@ public sealed class SoraApi
     /// <param name="userId">用户id</param>
     public async ValueTask<ApiStatus> DisableGroupMemberMute(long groupId, long userId)
     {
-        if (groupId < 100000 || userId < 10000)
-            throw new ArgumentOutOfRangeException($"{nameof(groupId)} or {nameof(userId)} out of range");
+        if (groupId < MinGroupId)
+            throw new ArgumentOutOfRangeException(nameof(groupId), $"out of range[{groupId}]");
+        if (userId < MinUserId)
+            throw new ArgumentOutOfRangeException(nameof(userId), $"out of range [{userId}]");
         return await ApiInterface.SetGroupBan(ConnectionId, groupId, userId, 0);
     }
 
@@ -314,8 +333,10 @@ public sealed class SoraApi
     /// <param name="duration">禁言时长, 单位秒</param>
     public async ValueTask<ApiStatus> EnableGroupAnonymousMute(long groupId, Anonymous anonymous, long duration)
     {
-        if (groupId < 100000 || duration < 60)
-            throw new ArgumentOutOfRangeException($"{nameof(groupId)} or {nameof(duration)} out of range");
+        if (groupId < MinGroupId)
+            throw new ArgumentOutOfRangeException(nameof(groupId), $"out of range [{groupId}]");
+        if (duration < MinDuration)
+            throw new ArgumentOutOfRangeException(nameof(duration), $"out of range [{duration}]");
         if (anonymous == null)
             throw new NullReferenceException("anonymous null");
         return await ApiInterface.SetAnonymousBan(ConnectionId, groupId, anonymous, duration);
@@ -330,8 +351,10 @@ public sealed class SoraApi
     public async ValueTask<ApiStatus> EnableGroupAnonymousMute(long groupId, string anonymousFlag,
                                                                long duration)
     {
-        if (groupId < 100000 || duration < 60)
-            throw new ArgumentOutOfRangeException($"{nameof(groupId)} or {nameof(duration)} out of range");
+        if (groupId < MinGroupId)
+            throw new ArgumentOutOfRangeException(nameof(groupId), $"out of range [{groupId}]");
+        if (duration < MinDuration)
+            throw new ArgumentOutOfRangeException(nameof(duration), $"out of range [{duration}]");
         if (anonymousFlag == null)
             throw new NullReferenceException("anonymousFlag null");
         return await ApiInterface.SetAnonymousBan(ConnectionId, groupId, anonymousFlag, duration);
@@ -343,7 +366,7 @@ public sealed class SoraApi
     /// <param name="groupId">群号</param>
     public async ValueTask<ApiStatus> EnableGroupMute(long groupId)
     {
-        if (groupId < 100000)
+        if (groupId < MinGroupId)
             throw new ArgumentOutOfRangeException(nameof(groupId));
         return await ApiInterface.SetGroupWholeBan(ConnectionId, groupId, true);
     }
@@ -354,7 +377,7 @@ public sealed class SoraApi
     /// <param name="groupId">群号</param>
     public async ValueTask<ApiStatus> DisableGroupMute(long groupId)
     {
-        if (groupId < 100000)
+        if (groupId < MinGroupId)
             throw new ArgumentOutOfRangeException(nameof(groupId));
         return await ApiInterface.SetGroupWholeBan(ConnectionId, groupId, false);
     }
@@ -366,8 +389,10 @@ public sealed class SoraApi
     /// <param name="userId">成员id</param>
     public async ValueTask<ApiStatus> EnableGroupAdmin(long groupId, long userId)
     {
-        if (groupId < 100000 || userId < 10000)
-            throw new ArgumentOutOfRangeException($"{nameof(groupId)} or {nameof(userId)} out of range");
+        if (groupId < MinGroupId)
+            throw new ArgumentOutOfRangeException(nameof(groupId), $"out of range [{groupId}]");
+        if (userId < MinUserId)
+            throw new ArgumentOutOfRangeException(nameof(userId), $"out of range [{userId}]");
         return await ApiInterface.SetGroupAdmin(ConnectionId, userId, groupId, true);
     }
 
@@ -378,8 +403,10 @@ public sealed class SoraApi
     /// <param name="userId">成员id</param>
     public async ValueTask<ApiStatus> DisableGroupAdmin(long groupId, long userId)
     {
-        if (groupId < 100000 || userId < 10000)
-            throw new ArgumentOutOfRangeException($"{nameof(groupId)} or {nameof(userId)} out of range");
+        if (groupId < MinGroupId)
+            throw new ArgumentOutOfRangeException(nameof(groupId), $"out of range[{groupId}]");
+        if (userId < MinUserId)
+            throw new ArgumentOutOfRangeException(nameof(userId), $"out of range [{userId}]");
         return await ApiInterface.SetGroupAdmin(ConnectionId, userId, groupId, false);
     }
 
@@ -389,7 +416,7 @@ public sealed class SoraApi
     /// <param name="groupId">群号</param>
     public async ValueTask<ApiStatus> LeaveGroup(long groupId)
     {
-        if (groupId < 100000) throw new ArgumentOutOfRangeException(nameof(groupId));
+        if (groupId < MinGroupId) throw new ArgumentOutOfRangeException(nameof(groupId));
         return await ApiInterface.SetGroupLeave(ConnectionId, groupId, false);
     }
 
@@ -399,7 +426,7 @@ public sealed class SoraApi
     /// <param name="groupId">群号</param>
     public async ValueTask<ApiStatus> DismissGroup(long groupId)
     {
-        if (groupId < 100000) throw new ArgumentOutOfRangeException(nameof(groupId));
+        if (groupId < MinGroupId) throw new ArgumentOutOfRangeException(nameof(groupId));
         return await ApiInterface.SetGroupLeave(ConnectionId, groupId, true);
     }
 
@@ -412,7 +439,7 @@ public sealed class SoraApi
     /// <param name="newName">新群名</param>
     public async ValueTask<ApiStatus> SetGroupName(long groupId, string newName)
     {
-        if (groupId < 100000) throw new ArgumentOutOfRangeException(nameof(groupId));
+        if (groupId < MinGroupId) throw new ArgumentOutOfRangeException(nameof(groupId));
         if (string.IsNullOrEmpty(newName)) throw new NullReferenceException(nameof(newName));
         return await ApiInterface.SetGroupName(ConnectionId, groupId, newName);
     }
@@ -425,7 +452,7 @@ public sealed class SoraApi
     /// <param name="useCache">是否使用缓存</param>
     public async ValueTask<ApiStatus> SetGroupPortrait(long groupId, string imageFile, bool useCache = true)
     {
-        if (groupId < 100000) throw new ArgumentOutOfRangeException(nameof(groupId));
+        if (groupId < MinGroupId) throw new ArgumentOutOfRangeException(nameof(groupId));
         if (string.IsNullOrEmpty(imageFile)) throw new NullReferenceException(nameof(imageFile));
         var (retFileStr, isMatch) = SegmentHelper.ParseDataStr(imageFile);
         if (!isMatch) throw new NotSupportedException($"not supported file type({imageFile})");
@@ -458,7 +485,7 @@ public sealed class SoraApi
     public async ValueTask<(ApiStatus apiStatus, GroupFileSysInfo groupFileSysInfo)> GetGroupFileSysInfo(
         long groupId)
     {
-        if (groupId < 100000) throw new ArgumentOutOfRangeException(nameof(groupId));
+        if (groupId < MinGroupId) throw new ArgumentOutOfRangeException(nameof(groupId));
         return await ApiInterface.GetGroupFileSysInfo(groupId, ConnectionId);
     }
 
@@ -475,7 +502,7 @@ public sealed class SoraApi
         ValueTask<(ApiStatus apiStatus, List<GroupFileInfo> groupFiles, List<GroupFolderInfo> groupFolders)>
         GetGroupRootFiles(long groupId)
     {
-        if (groupId < 100000) throw new ArgumentOutOfRangeException(nameof(groupId));
+        if (groupId < MinGroupId) throw new ArgumentOutOfRangeException(nameof(groupId));
         return await ApiInterface.GetGroupRootFiles(groupId, ConnectionId);
     }
 
@@ -493,7 +520,7 @@ public sealed class SoraApi
         ValueTask<(ApiStatus apiStatus, List<GroupFileInfo> groupFiles, List<GroupFolderInfo> groupFolders)>
         GetGroupFilesByFolder(long groupId, string foldId)
     {
-        if (groupId < 100000) throw new ArgumentOutOfRangeException(nameof(groupId));
+        if (groupId < MinGroupId) throw new ArgumentOutOfRangeException(nameof(groupId));
         return await ApiInterface.GetGroupFilesByFolder(groupId, foldId, ConnectionId);
     }
 
@@ -510,7 +537,7 @@ public sealed class SoraApi
     public async ValueTask<(ApiStatus apiStatus, bool canAt, short groupRemain, short botRemain)>
         GetGroupAtAllRemain(long groupId)
     {
-        if (groupId < 100000) throw new ArgumentOutOfRangeException(nameof(groupId));
+        if (groupId < MinGroupId) throw new ArgumentOutOfRangeException(nameof(groupId));
         return await ApiInterface.GetGroupAtAllRemain(groupId, ConnectionId);
     }
 
@@ -524,7 +551,7 @@ public sealed class SoraApi
     public async ValueTask<(ApiStatus apiStatus, string fileUrl)> GetGroupFileUrl(
         long groupId, string fileId, int busid)
     {
-        if (groupId < 100000) throw new ArgumentOutOfRangeException(nameof(groupId));
+        if (groupId < MinGroupId) throw new ArgumentOutOfRangeException(nameof(groupId));
         return await ApiInterface.GetGroupFileUrl(groupId, fileId, busid, ConnectionId);
     }
 
@@ -539,7 +566,7 @@ public sealed class SoraApi
     public async ValueTask<ApiStatus> UploadGroupFile(long groupId, string localFilePath, string fileName,
                                                       string folderId = null)
     {
-        if (groupId < 100000) throw new ArgumentOutOfRangeException(nameof(groupId));
+        if (groupId < MinGroupId) throw new ArgumentOutOfRangeException(nameof(groupId));
         return await ApiInterface.UploadGroupFile(ConnectionId, groupId, localFilePath,
                                                   fileName, folderId);
     }
@@ -593,7 +620,7 @@ public sealed class SoraApi
     /// <param name="image">图片</param>
     public async ValueTask<ApiStatus> SendGroupNotice(long groupId, string content, string image = null)
     {
-        if (groupId < 100000) throw new ArgumentOutOfRangeException(nameof(groupId));
+        if (groupId < MinGroupId) throw new ArgumentOutOfRangeException(nameof(groupId));
         return await ApiInterface.SendGroupNotice(ConnectionId, groupId, content, image);
     }
 
@@ -604,7 +631,7 @@ public sealed class SoraApi
     /// <param name="name">文件夹名</param>
     public async ValueTask<ApiStatus> CreateGroupFileRootFolder(long groupId, string name)
     {
-        if (groupId < 100000) throw new ArgumentOutOfRangeException(nameof(groupId));
+        if (groupId < MinGroupId) throw new ArgumentOutOfRangeException(nameof(groupId));
         return await ApiInterface.CreateGroupFileFolder(ConnectionId, groupId, name, null);
     }
 
@@ -615,7 +642,7 @@ public sealed class SoraApi
     /// <param name="folderId">文件夹ID</param>
     public async ValueTask<ApiStatus> DeleteGroupFolder(long groupId, string folderId)
     {
-        if (groupId < 100000) throw new ArgumentOutOfRangeException(nameof(groupId));
+        if (groupId < MinGroupId) throw new ArgumentOutOfRangeException(nameof(groupId));
         return await ApiInterface.DeleteGroupFolder(ConnectionId, groupId, folderId);
     }
 
@@ -629,7 +656,7 @@ public sealed class SoraApi
     /// <param name="busId">文件类型</param>
     public async ValueTask<ApiStatus> DeleteGroupFile(long groupId, string fileId, int busId)
     {
-        if (groupId < 100000) throw new ArgumentOutOfRangeException(nameof(groupId));
+        if (groupId < MinGroupId) throw new ArgumentOutOfRangeException(nameof(groupId));
         return await ApiInterface.DeleteGroupFile(ConnectionId, groupId, fileId, busId);
     }
 
@@ -687,8 +714,8 @@ public sealed class SoraApi
     public async ValueTask<(ApiStatus apiStatus, List<GroupMemberInfo> groupMemberList)> GetGroupMemberList(
         long groupId, bool useCache = true)
     {
-        if (groupId < 100000)
-            throw new ArgumentOutOfRangeException($"{nameof(groupId)} out of range");
+        if (groupId < MinGroupId)
+            throw new ArgumentOutOfRangeException(nameof(groupId), $"out of range [{groupId}]");
         return await ApiInterface.GetGroupMemberList(ServiceId, ConnectionId, groupId, useCache);
     }
 
@@ -704,8 +731,8 @@ public sealed class SoraApi
     public async ValueTask<(ApiStatus apiStatus, GroupInfo groupInfo)> GetGroupInfo(
         long groupId, bool useCache = true)
     {
-        if (groupId < 100000)
-            throw new ArgumentOutOfRangeException($"{nameof(groupId)} out of range");
+        if (groupId < MinGroupId)
+            throw new ArgumentOutOfRangeException(nameof(groupId), $"out of range [{groupId}]");
         return await ApiInterface.GetGroupInfo(ConnectionId, groupId, useCache);
     }
 
@@ -722,8 +749,10 @@ public sealed class SoraApi
     public async ValueTask<(ApiStatus apiStatus, GroupMemberInfo memberInfo)> GetGroupMemberInfo(
         long groupId, long userId, bool useCache = true)
     {
-        if (groupId < 100000 && userId < 10000)
-            throw new ArgumentOutOfRangeException($"{nameof(groupId)} or {nameof(userId)} out of range");
+        if (groupId < MinGroupId)
+            throw new ArgumentOutOfRangeException(nameof(groupId), $"out of range [{groupId}]");
+        if (userId < MinUserId)
+            throw new ArgumentOutOfRangeException(nameof(userId), $"out of range [{userId}]");
         return await ApiInterface.GetGroupMemberInfo(ServiceId, ConnectionId, groupId, userId, useCache);
     }
     public async ValueTask<(ApiStatus apiStatus, GuildMembers memberInfo)> GetGuildMembers(
@@ -746,20 +775,8 @@ public sealed class SoraApi
     public async ValueTask<(ApiStatus apiStatus, UserInfo userInfo, string qid)> GetUserInfo(
         long userId, bool useCache = true)
     {
-        if (userId < 10000) throw new ArgumentOutOfRangeException(nameof(userId));
+        if (userId < MinUserId) throw new ArgumentOutOfRangeException(nameof(userId));
         return await ApiInterface.GetUserInfo(ServiceId, ConnectionId, userId, useCache);
-    }
-
-    /// <summary>
-    /// <para>获取vip信息[不能获取非好友]</para>
-    /// <para>注意:此为不稳定API</para>
-    /// </summary>
-    /// <param name="userId">用户ID</param>
-    [Obsolete]
-    public async ValueTask<(ApiStatus apiStatus, VipInfo vipInfo)> GetVipInfo(long userId)
-    {
-        if (userId < 10000) throw new ArgumentOutOfRangeException(nameof(userId));
-        return await ApiInterface.GetVipInfo(ConnectionId, userId);
     }
 
     /// <summary>
@@ -999,7 +1016,7 @@ public sealed class SoraApi
     /// <param name="userId">用户id</param>
     public User GetUser(long userId)
     {
-        if (userId < 10000) throw new ArgumentOutOfRangeException(nameof(userId));
+        if (userId < MinUserId) throw new ArgumentOutOfRangeException(nameof(userId));
         return new User(ServiceId, ConnectionId, userId);
     }
 
@@ -1009,7 +1026,7 @@ public sealed class SoraApi
     /// <param name="groupId">群id</param>
     public Group GetGroup(long groupId)
     {
-        if (groupId < 100000) throw new ArgumentOutOfRangeException(nameof(groupId));
+        if (groupId < MinGroupId) throw new ArgumentOutOfRangeException(nameof(groupId));
         return new Group(ServiceId, ConnectionId, groupId);
     }
 

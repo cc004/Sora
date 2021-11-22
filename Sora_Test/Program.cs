@@ -1,12 +1,14 @@
-using System.Threading.Tasks;
 using Sora;
 using Sora.Entities.Segment;
 using Sora.Enumeration;
 using Sora.Net.Config;
-using YukariToolBox.FormatLog;
+using System.Threading.Tasks;
+using YukariToolBox.LightLog;
 
 //设置log等级
-Log.SetLogLevel(LogLevel.Debug);
+Log.LogConfiguration
+   .EnableConsoleOutput()
+   .SetLogLevel(LogLevel.Debug);
 
 //实例化Sora服务
 var service = SoraServiceFactory.CreateService(new ServerConfig());

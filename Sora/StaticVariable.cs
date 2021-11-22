@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 using Sora.Entities.Info.InternalDataInfo;
 using Sora.Enumeration;
-using YukariToolBox.FormatLog;
+using YukariToolBox.LightLog;
 
 namespace Sora;
 
@@ -43,7 +43,7 @@ public static class StaticVariable
     /// <summary>
     /// 版本号
     /// </summary>
-    public const string Version = "1.0.0-rc26";
+    public const string Version = "1.0.0-rc34";
 
     /// <summary>
     /// 清除服务数据

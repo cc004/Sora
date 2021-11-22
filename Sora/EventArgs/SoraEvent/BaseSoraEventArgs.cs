@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Sora.Command;
 using Sora.Entities.Base;
 using Sora.Enumeration;
-using YukariToolBox.Time;
+using Sora.Util;
 
 namespace Sora.EventArgs.SoraEvent;
 

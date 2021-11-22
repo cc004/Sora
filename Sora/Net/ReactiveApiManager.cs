@@ -8,8 +8,8 @@ using Sora.Attributes;
 using Sora.Entities.Info;
 using Sora.Enumeration.ApiType;
 using Sora.OnebotModel.ApiParams;
-using YukariToolBox.Extensions;
-using YukariToolBox.FormatLog;
+using Sora.Util;
+using YukariToolBox.LightLog;
 
 namespace Sora.Net;
 

@@ -1,6 +1,6 @@
 ﻿using System;
 using Newtonsoft.Json;
-using YukariToolBox.Time;
+using Sora.Util;
 
 namespace Sora.Entities.Segment.DataModel;
 

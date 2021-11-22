@@ -1,17 +1,17 @@
+using System;
+using System.Reflection;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Sora.Command;
+using Sora.Enumeration.ApiType;
 using Sora.EventArgs.SoraEvent;
 using Sora.Net;
 using Sora.OnebotModel.OnebotEvent.MessageEvent;
 using Sora.OnebotModel.OnebotEvent.MetaEvent;
 using Sora.OnebotModel.OnebotEvent.NoticeEvent;
 using Sora.OnebotModel.OnebotEvent.RequestEvent;
-using System;
-using System.Reflection;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Sora.Enumeration.ApiType;
-using YukariToolBox.FormatLog;
+using YukariToolBox.LightLog;
 
 namespace Sora.OnebotInterface;
 
@@ -38,8 +38,9 @@ public class EventInterface
         get
         {
             if (StaticVariable.ServiceInfos[ServiceId].EnableSoraCommandManager) return _commandManager;
-            Log.Fatal("非法操作", "指令服务已被禁用");
-            throw new InvalidOperationException("在禁用指令管理器后尝试调用管理器，请在开启指令服务后再调用此实例");
+            var e = new InvalidOperationException("在禁用指令管理器后尝试调用管理器，请在开启指令服务后再调用此实例");
+            Log.Fatal(e, "非法操作", "指令服务已被禁用");
+            throw e;
         }
     }
 

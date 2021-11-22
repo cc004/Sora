@@ -1,7 +1,3 @@
-using Sora.Attributes.Command;
-using Sora.Enumeration;
-using Sora.Enumeration.EventParamsType;
-using Sora.EventArgs.SoraEvent;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,10 +8,13 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Sora.Attributes;
+using Sora.Attributes.Command;
 using Sora.Entities.Info.InternalDataInfo;
-using YukariToolBox.Extensions;
-using YukariToolBox.FormatLog;
-using YukariToolBox.Helpers;
+using Sora.Enumeration;
+using Sora.Enumeration.EventParamsType;
+using Sora.EventArgs.SoraEvent;
+using Sora.Util;
+using YukariToolBox.LightLog;
 
 namespace Sora.Command;
 
@@ -383,7 +382,7 @@ public class CommandManager
         //若无匹配表达式，则创建一个空白的命令信息
         if (matchExp == null)
         {
-            commandInfo = ObjectHelper.CreateInstance<CommandInfo>();
+            commandInfo = Helper.CreateInstance<CommandInfo>();
             return null;
         }
 
@@ -391,7 +390,7 @@ public class CommandManager
         //若创建实例失败且方法不是静态的，则返回空白命令信息
         if (!method.IsStatic && !CheckAndCreateInstance(classType))
         {
-            commandInfo = ObjectHelper.CreateInstance<CommandInfo>();
+            commandInfo = Helper.CreateInstance<CommandInfo>();
             return null;
         }
 

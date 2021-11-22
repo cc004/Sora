@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using Sora.Converter;
 using Sora.Enumeration;
 using Sora.Enumeration.EventParamsType;
-using YukariToolBox.Time;
+using Sora.Util;
 
 namespace Sora.Entities.Info;
 
