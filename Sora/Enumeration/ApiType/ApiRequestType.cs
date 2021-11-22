@@ -19,8 +19,10 @@ internal enum ApiRequestType
     /// <summary>
     /// 发送消息
     /// </summary>
-    [Description("send_msg")] 
+    [Description("send_msg")]
     SendMsg,
+    [Description("send_guild_channel_msg")]
+    SendGuildMsg,
 
     /// <summary>
     /// 获取登录号信息
@@ -61,8 +63,11 @@ internal enum ApiRequestType
     /// <summary>
     /// 获取群成员信息
     /// </summary>
-    [Description("get_group_member_info")] 
+    [Description("get_group_member_info")]
     GetGroupMemberInfo,
+
+    [Description("get_guild_members")]
+    GetGuildMembers,
 
     /// <summary>
     /// 获取陌生人信息

@@ -7,6 +7,26 @@ using YukariToolBox.Time;
 
 namespace Sora.Entities.Info;
 
+public class GuildMemberInfo
+{
+    [JsonProperty(PropertyName = "tiny_id")]
+    public long UserId { get; set; }
+
+    [JsonProperty(PropertyName = "title")]
+    public string Title { get; set; }
+    [JsonProperty(PropertyName = "nickname")]
+    public string Nick { get; set; }
+    [JsonProperty(PropertyName = "role")]
+    public MemberRoleType Role { get; set; }
+}
+
+public class GuildMembers
+{
+    public GuildMemberInfo[] members = Array.Empty<GuildMemberInfo>();
+    public GuildMemberInfo[] bots = Array.Empty<GuildMemberInfo>();
+    public GuildMemberInfo[] admins = Array.Empty<GuildMemberInfo>();
+}
+
 /// <summary>
 /// 群成员信息
 /// </summary>

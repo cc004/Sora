@@ -13,6 +13,35 @@ using Group = Sora.Entities.Group;
 
 namespace Sora.EventArgs.SoraEvent;
 
+public sealed class GuildMessageEventArgs : BaseSoraEventArgs
+{
+    public Message Message { get; }
+    public long Sender { get; }
+    public long Channel { get; }
+    public long Guild { get; }
+    public GroupSenderInfo SenderInfo { get; }
+
+    internal GuildMessageEventArgs(Guid serviceId, Guid connectionId, string eventName,
+        OneBotGuildMsgEventArgs groupMsgArgs)
+        : base(serviceId, connectionId, eventName, groupMsgArgs.SelfID, groupMsgArgs.Time)
+    {
+        //将api消息段转换为sorasegment
+        Message = new Message(serviceId, connectionId, groupMsgArgs.MessageId, groupMsgArgs.RawMessage,
+            groupMsgArgs.MessageList.ToMessageBody(), groupMsgArgs.Time,
+            groupMsgArgs.Font, groupMsgArgs.MessageSequence);
+        Sender = groupMsgArgs.UserId;
+        Channel = groupMsgArgs.ChannelId;
+        Guild = groupMsgArgs.GuildId;
+
+        //检查服务管理员权限
+        var groupSenderInfo = groupMsgArgs.SenderInfo;
+        if (groupSenderInfo.UserId != 0 && StaticVariable.ServiceInfos[serviceId].SuperUsers
+                .Contains(groupSenderInfo.UserId))
+            groupSenderInfo.Role = MemberRoleType.SuperUser;
+        SenderInfo = groupSenderInfo;
+    }
+}
+
 /// <summary>
 /// 群消息事件参数
 /// </summary>
@@ -71,14 +100,14 @@ public sealed class GroupMessageEventArgs : BaseSoraEventArgs
         : base(serviceId, connectionId, eventName, groupMsgArgs.SelfID, groupMsgArgs.Time)
     {
         IsAnonymousMessage = groupMsgArgs.Anonymous != null;
-        IsSelfMessage      = groupMsgArgs.MessageType.Equals("group_self");
+        IsSelfMessage = groupMsgArgs.MessageType.Equals("group_self");
         //将api消息段转换为sorasegment
         Message = new Message(serviceId, connectionId, groupMsgArgs.MessageId, groupMsgArgs.RawMessage,
                               groupMsgArgs.MessageList.ToMessageBody(), groupMsgArgs.Time,
                               groupMsgArgs.Font, groupMsgArgs.MessageSequence);
-        Sender      = new User(serviceId, connectionId, groupMsgArgs.UserId);
+        Sender = new User(serviceId, connectionId, groupMsgArgs.UserId);
         SourceGroup = new Group(serviceId, connectionId, groupMsgArgs.GroupId);
-        Anonymous   = IsAnonymousMessage ? groupMsgArgs.Anonymous : null;
+        Anonymous = IsAnonymousMessage ? groupMsgArgs.Anonymous : null;
 
         //检查服务管理员权限
         var groupSenderInfo = groupMsgArgs.SenderInfo;
@@ -198,7 +227,7 @@ public sealed class GroupMessageEventArgs : BaseSoraEventArgs
                                                                     RegexOptions regexOptions = RegexOptions.None)
     {
         if (StaticVariable.ServiceInfos[SoraApi.ServiceId].EnableSoraCommandManager)
-            return WaitForNextMessageAsync(new[] {commandExp}, matchType, regexOptions);
+            return WaitForNextMessageAsync(new[] { commandExp }, matchType, regexOptions);
         CommandDisableTip();
         return ValueTask.FromResult<GroupMessageEventArgs>(null);
     }
@@ -218,7 +247,7 @@ public sealed class GroupMessageEventArgs : BaseSoraEventArgs
                                                                     RegexOptions regexOptions = RegexOptions.None)
     {
         if (StaticVariable.ServiceInfos[SoraApi.ServiceId].EnableSoraCommandManager)
-            return ValueTask.FromResult(WaitForNextMessage(Sender, new[] {commandExp},
+            return ValueTask.FromResult(WaitForNextMessage(Sender, new[] { commandExp },
                                                            matchType, SourceFlag.Group, regexOptions, timeout,
                                                            timeoutTask,
                                                            SourceGroup) as GroupMessageEventArgs);

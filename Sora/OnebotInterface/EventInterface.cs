@@ -94,6 +94,11 @@ public class EventInterface
     public event EventAsyncCallBackHandler<GroupMessageEventArgs> OnGroupMessage;
 
     /// <summary>
+    /// 群聊事件
+    /// </summary>
+    public event EventAsyncCallBackHandler<GuildMessageEventArgs> OnGuildMessage;
+
+    /// <summary>
     /// 登录账号发送消息事件
     /// </summary>
     public event EventAsyncCallBackHandler<GroupMessageEventArgs> OnSelfMessage;
@@ -354,6 +359,21 @@ public class EventInterface
                 await OnGroupMessage("Message", eventArgs);
                 break;
             }
+
+            case "guild":
+            {
+                var groupMsg = messageJson.ToObject<OneBotGuildMsgEventArgs>();
+                if (groupMsg == null) break;
+                if (StaticVariable.ServiceInfos[ServiceId].BlockUsers.Contains(groupMsg.UserId)) return;
+                Log.Debug("Sora",
+                    $"Guild msg[{groupMsg.GuildId},{groupMsg.ChannelId}] form {groupMsg.SenderInfo.Nick}[{groupMsg.UserId}] <- {groupMsg.RawMessage}");
+                var eventArgs = new GuildMessageEventArgs(ServiceId, connection, "group", groupMsg);
+
+                if (OnGuildMessage == null) break;
+                await OnGuildMessage("Message", eventArgs);
+                break;
+}
+
             default:
                 Log.Warning("Sora|Message", $"接收到未知事件[{TryGetJsonValue(messageJson, "message_type")}]");
                 break;
@@ -378,11 +398,19 @@ public class EventInterface
                 var groupMsg = messageJson.ToObject<OnebotGroupMsgEventArgs>();
                 if (groupMsg == null) break;
                 Log.Debug("Sora",
-                          $"Group self msg[{groupMsg.GroupId}] -> {groupMsg.RawMessage}");
+                    $"Group self msg[{groupMsg.GroupId}] -> {groupMsg.RawMessage}");
                 //执行回调
                 if (OnSelfMessage == null) break;
                 await OnSelfMessage("Message",
-                                    new GroupMessageEventArgs(ServiceId, connection, "group", groupMsg));
+                    new GroupMessageEventArgs(ServiceId, connection, "group", groupMsg));
+                break;
+            }
+            case "guild":
+            {
+                var groupMsg = messageJson.ToObject<OneBotGuildMsgEventArgs>();
+                if (groupMsg == null) break;
+                Log.Debug("Sora",
+                    $"Group self msg[{groupMsg.GuildId},{groupMsg.ChannelId}] -> {groupMsg.RawMessage}");
                 break;
             }
             default:

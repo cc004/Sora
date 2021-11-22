@@ -4,6 +4,18 @@ using Sora.Entities.Info;
 
 namespace Sora.OnebotModel.OnebotEvent.MessageEvent;
 
+internal sealed class OneBotGuildMsgEventArgs : BaseMessageEventArgs
+{
+    [JsonProperty(PropertyName = "guild_id")]
+    internal long GuildId { get; set; }
+
+    [JsonProperty(PropertyName = "channel_id")]
+    internal long ChannelId { get; set; }
+    [JsonProperty(PropertyName = "sender")]
+    internal GroupSenderInfo SenderInfo { get; set; }
+    [JsonProperty(PropertyName = "message_seq")]
+    internal long MessageSequence { get; set; }
+}
 /// <summary>
 /// 群组消息事件
 /// </summary>

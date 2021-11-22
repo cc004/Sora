@@ -63,6 +63,35 @@ internal static class ApiInterface
         return (apiStatus, msgCode);
     }
 
+    internal static async ValueTask<(ApiStatus apiStatus, int messageId)> SendGuildMessage(Guid connectionId, long guild, long channel, MessageBody messages)
+    {
+        Log.Debug("Sora", "Sending send_msg(Group) request");
+        if (messages == null || messages.Count == 0) throw new NullReferenceException(nameof(messages));
+        var msglist = messages.Where(msg => msg.MessageType != SegmentType.Ignore)
+            .Select(msg => msg.ToOnebotMessage())
+            .ToList();
+        //发送信息
+        var (apiStatus, ret) = await ReactiveApiManager.SendApiRequest(new ApiRequest
+        {
+            ApiRequestType = ApiRequestType.SendGuildMsg,
+            ApiParams = new SendMessageParams
+            {
+                MessageType = MessageType.Group,
+                GuildId = guild,
+                ChannelId = channel,
+                //转换消息段列表
+                Message = msglist
+            }
+        }, connectionId, null);
+        Log.Debug("Sora", $"Get send_msg(Guild) response {nameof(apiStatus)}={apiStatus.RetCode}");
+        if (apiStatus.RetCode != ApiStatusType.OK) return (apiStatus, -1);
+        var msgCode = int.TryParse(ret?["data"]?["message_id"]?.ToString(), out var messageCode)
+            ? messageCode
+            : -1;
+        Log.Debug("Sora", $"msg send -> guild[{guild}::{channel}]");
+        return (apiStatus, msgCode);
+    }
+
     /// <summary>
     /// 发送群聊消息
     /// </summary>
@@ -270,6 +299,25 @@ internal static class ApiInterface
     /// <param name="groupId">群号</param>
     /// <param name="userId">用户ID</param>
     /// <param name="useCache">是否使用缓存</param>
+    internal static async ValueTask<(ApiStatus apiStatus, GuildMembers memberInfo)> GetGuildMembers(
+        Guid serviceId, Guid connection, long guildId)
+    {
+        Log.Debug("Sora", "Sending get_guild_members request");
+        var (apiStatus, ret) = await ReactiveApiManager.SendApiRequest(new ApiRequest
+        {
+            ApiRequestType = ApiRequestType.GetGuildMembers,
+            ApiParams = new
+            {
+                guild_id = guildId
+            }
+        }, connection);
+        Log.Debug("Sora", $"Get get_guild_members response {nameof(apiStatus)}={apiStatus.RetCode}");
+        if (apiStatus.RetCode != ApiStatusType.OK || ret?["data"] == null)
+            return (apiStatus, new GuildMembers());
+        var memberInfo = ret["data"]?.ToObject<GuildMembers>() ?? new GuildMembers();
+        return (apiStatus, memberInfo);
+    }
+
     internal static async ValueTask<(ApiStatus apiStatus, GroupMemberInfo memberInfo)> GetGroupMemberInfo(
         Guid serviceId, Guid connection, long groupId, long userId, bool useCache)
     {
@@ -418,7 +466,7 @@ internal static class ApiInterface
         ValueTask<(ApiStatus apiStatus, Message message, User sender, Group sourceGroup, int
             realId, bool
             isGroupMsg)> GetMessage(
-            Guid serviceId, Guid connection, int msgId)
+            Guid serviceId, Guid connection, string msgId)
     {
         Log.Debug("Sora", "Sending get_msg request");
         var (apiStatus, ret) = await ReactiveApiManager.SendApiRequest(new ApiRequest
@@ -937,7 +985,7 @@ internal static class ApiInterface
     /// </summary>
     /// <param name="connection">服务器连接标识</param>
     /// <param name="msgId">消息id</param>
-    internal static async ValueTask<ApiStatus> RecallMsg(Guid connection, int msgId)
+    internal static async ValueTask<ApiStatus> RecallMsg(Guid connection, string msgId)
     {
         Log.Debug("Sora", "Sending delete_msg request");
         var (apiStatus, _) = await ReactiveApiManager.SendApiRequest(new ApiRequest
@@ -1573,7 +1621,7 @@ internal static class ApiInterface
     /// </summary>
     /// <param name="connection">连接标识</param>
     /// <param name="msgId">消息ID</param>
-    internal static async ValueTask<ApiStatus> MarkMessageRead(Guid connection, int msgId)
+    internal static async ValueTask<ApiStatus> MarkMessageRead(Guid connection, string msgId)
     {
         Log.Debug("Sora", "Sending mark_msg_as_read request");
         var (apiStatus, _) = await ReactiveApiManager.SendApiRequest(new ApiRequest
@@ -1593,7 +1641,7 @@ internal static class ApiInterface
     /// </summary>
     /// <param name="connection">连接标识</param>
     /// <param name="msgId">消息ID</param>
-    internal static async void MarkMessageReadAsync(Guid connection, int msgId)
+    internal static async void MarkMessageReadAsync(Guid connection, string msgId)
     {
         Log.Debug("Sora", "Sending mark_msg_as_read request");
         var (apiStatus, _) = await ReactiveApiManager.SendApiRequest(new ApiRequest
@@ -1630,4 +1678,5 @@ internal static class ApiInterface
     #endregion
 
     #endregion
+
 }

@@ -28,6 +28,10 @@ internal struct SendMessageParams
     /// </summary>
     [JsonProperty(PropertyName = "group_id", NullValueHandling = NullValueHandling.Ignore)]
     internal long? GroupId { get; set; }
+    [JsonProperty(PropertyName = "guild_id", NullValueHandling = NullValueHandling.Ignore)]
+    internal long? GuildId { get; set; }
+    [JsonProperty(PropertyName = "channel_id", NullValueHandling = NullValueHandling.Ignore)]
+    internal long? ChannelId { get; set; }
 
     /// <summary>
     /// 消息段数组

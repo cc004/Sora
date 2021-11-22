@@ -109,11 +109,16 @@ public sealed class SoraApi
         return await ApiInterface.SendGroupMessage(ConnectionId, groupId, message, timeout);
     }
 
+    public async ValueTask<(ApiStatus apiStatus, int messageId)> SendGuildMessage(long guild, long channel, MessageBody getMessageChain)
+    {
+        return await ApiInterface.SendGuildMessage(ConnectionId, guild, channel, getMessageChain);
+    }
+
     /// <summary>
     /// 撤回消息
     /// </summary>
     /// <param name="messageId">消息ID</param>
-    public async ValueTask<ApiStatus> RecallMessage(int messageId)
+    public async ValueTask<ApiStatus> RecallMessage(string messageId)
     {
         return await ApiInterface.RecallMsg(ConnectionId, messageId);
     }
@@ -181,7 +186,7 @@ public sealed class SoraApi
     /// </returns>
     public async
         ValueTask<(ApiStatus apiStatus, Message message, User sender, Group sourceGroup,
-            int realId, bool isGroupMsg)> GetMessage(int messageId)
+            int realId, bool isGroupMsg)> GetMessage(string messageId)
     {
         return await ApiInterface.GetMessage(ServiceId, ConnectionId, messageId);
     }
@@ -219,7 +224,7 @@ public sealed class SoraApi
     /// 标记消息已读
     /// </summary>
     /// <param name="messageId">消息ID</param>
-    public async ValueTask<ApiStatus> MarkMessageRead(int messageId)
+    public async ValueTask<ApiStatus> MarkMessageRead(string messageId)
     {
         return await ApiInterface.MarkMessageRead(ConnectionId, messageId);
     }
@@ -720,6 +725,11 @@ public sealed class SoraApi
         if (groupId < 100000 && userId < 10000)
             throw new ArgumentOutOfRangeException($"{nameof(groupId)} or {nameof(userId)} out of range");
         return await ApiInterface.GetGroupMemberInfo(ServiceId, ConnectionId, groupId, userId, useCache);
+    }
+    public async ValueTask<(ApiStatus apiStatus, GuildMembers memberInfo)> GetGuildMembers(
+        long guildId)
+    {
+        return await ApiInterface.GetGuildMembers(ServiceId, ConnectionId, guildId);
     }
 
     /// <summary>
