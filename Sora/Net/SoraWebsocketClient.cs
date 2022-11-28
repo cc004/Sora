@@ -11,6 +11,7 @@ using Sora.Net.Config;
 using Sora.OnebotInterface;
 using Sora.Util;
 using Websocket.Client;
+using Websocket.Client.Logging;
 using YukariToolBox.LightLog;
 
 namespace Sora.Net;
@@ -65,6 +66,10 @@ public sealed class SoraWebsocketClient : ISoraService, IDisposable
 
     #region 构造方法
 
+    static SoraWebsocketClient()
+    {
+        LogProvider.IsDisabled = true;
+    }
     /// <summary>
     /// 创建一个正向WS客户端
     /// </summary>
@@ -73,6 +78,7 @@ public sealed class SoraWebsocketClient : ISoraService, IDisposable
     /// <exception cref="DataException">数据初始化错误</exception>
     /// <exception cref="ArgumentNullException">空配置文件错误</exception>
     /// <exception cref="ArgumentOutOfRangeException">参数错误</exception>
+    /// 
     internal SoraWebsocketClient(ClientConfig config, Action<Exception> crashAction = null)
     {
         _clientReady = false;

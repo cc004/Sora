@@ -174,6 +174,7 @@ public sealed class ConnectionManager : IDisposable
     /// <param name="connectionGuid">连接标识</param>
     internal static void HeartBeatUpdate(Guid connectionGuid)
     {
+        if (!StaticVariable.ConnectionInfos.ContainsKey(connectionGuid)) return;
         var oldInfo = StaticVariable.ConnectionInfos[connectionGuid];
         var newInfo = oldInfo;
         newInfo.LastHeartBeatTime = DateTime.Now;
